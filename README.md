@@ -57,3 +57,17 @@ npm install
 ```bash
 npm run dev
 ````
+
+
+---
+
+## 📄 Lisans & İletişim
+Bu proje, **Ankara Üniversitesi Bilgisayar Mühendisliği** bünyesinde yürütülen Lisans Bitirme Tezi kapsamında geliştirilmiş bir uygulamadır.
+
+**Geliştiriciler:**
+*   **Ece İrem Şişer** 
+*   **Derda Sina Günay** 
+
+**Akademik Yayın:** ITTA 2026 (Forthcoming)
+
+**Lisans:** Bu proje MIT Lisansı altında lisanslanmıştır. Detaylar için `LICENSE` dosyasına bakınız.
