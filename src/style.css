@@ -1,0 +1,102 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+@import "tailwindcss";
+
+/* 1. GLOBAL LIGHT THEME VARIABLES */
+:root {
+  --app-bg: #f8fafc;
+  --app-surface: #ffffff;
+  --app-surface-soft: #f1f5f9;
+  --app-border: #e2e8f0;
+  --app-text-primary: #0f172a;
+  --app-text-secondary: #334155;
+  --app-text-muted: #64748b;
+  --app-accent: #0f172a;
+  --app-accent-contrast: #ffffff;
+  --app-accent-hover: #1e293b;
+  --app-accent-strong: #0f172a;
+  --app-accent-strong-text: #ffffff;
+}
+
+/* 2. PREMIUM DARK THEME VARIABLES (DEEP BLACK) */
+html[data-theme='dark'] {
+  --app-bg: #050505; /* Gerçek Siyah - OLED Etkisi */
+  --app-surface: rgba(255, 255, 255, 0.03); 
+  --app-surface-soft: rgba(255, 255, 255, 0.05);
+  --app-border: rgba(255, 255, 255, 0.08); /* İnce ve zarif sınırlar */
+  --app-text-primary: #ffffff;
+  --app-text-secondary: #94a3b8;
+  --app-text-muted: #64748b;
+  --app-accent: rgba(255, 255, 255, 0.1);
+  --app-accent-contrast: #ffffff;
+  --app-accent-hover: rgba(255, 255, 255, 0.15);
+  --app-accent-strong: #ffffff;
+  --app-accent-strong-text: #050505;
+}
+
+/* 3. BASE STYLES */
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--app-bg);
+  color: var(--app-text-primary);
+  font-family: "Inter", "Satoshi", "SF Pro Display", system-ui, -apple-system, sans-serif;
+  transition: background-color 0.3s ease; /* Tema geçişini yumuşatır */
+}
+
+/* 4. COMPONENT CLASSES */
+.app-bg { background: var(--app-bg); }
+.app-surface { background: var(--app-surface); }
+.app-surface-soft { background: var(--app-surface-soft); }
+.app-border { border-color: var(--app-border); }
+.app-text-primary { color: var(--app-text-primary); }
+.app-text-secondary { color: var(--app-text-secondary); }
+.app-text-muted { color: var(--app-text-muted); }
+
+/* 5. MODAL STYLES (DETAY EKRANI) */
+.modal-backdrop {
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(12px) saturate(120%); /* Havalı arka plan bulanıklığı */
+}
+
+.modal-surface {
+  background: #f9fafb;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+html[data-theme='dark'] .modal-surface {
+  background: #0d1117; /* Modal içi derin koyu */
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+}
+
+.modal-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(15, 23, 42, 0.25) transparent;
+}
+
+/* 6. AI HIGHLIGHTING (XAI) */
+.modal-highlight {
+  background: rgba(251, 191, 36, 0.25);
+  color: #7c5a00;
+  border-radius: 4px;
+  padding: 0 4px;
+}
+
+html[data-theme='dark'] .modal-highlight {
+  background: rgba(255, 191, 0, 0.2);
+  color: #fde68a;
+}
+
+/* 7. CUSTOM SCROLLBAR */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.2);
+  border-radius: 999px;
+}
+html[data-theme='dark'] ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+}
