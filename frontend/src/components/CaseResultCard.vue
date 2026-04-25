@@ -94,7 +94,7 @@ const highlightedSummary = computed(() => highlightEntities(props.item.summary_f
         @click="saved.toggleCase(item)"
         :aria-label="isSaved ? 'Remove bookmark' : 'Save case'"
       >
-        <Bookmark class="size-4" :class="isSaved ? 'fill-slate-900' : ''" />
+        <Bookmark class="size-4" :class="isSaved ? 'fill-current' : ''" />
       </button>
     </div>
   </article>

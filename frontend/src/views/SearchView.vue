@@ -142,26 +142,22 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="relative">
+  <div class="relative w-full overflow-x-hidden">
     <div class="pointer-events-none absolute inset-0 overflow-hidden">
       <div class="mesh-blob mesh-blob-1" />
       <div class="mesh-blob mesh-blob-2" />
       <div class="mesh-blob mesh-blob-3" />
     </div>
 
-    <div
-      class="sticky top-0 z-40 -mx-4 border-b app-border bg-transparent px-4 py-10 backdrop-blur-sm sm:-mx-6 sm:px-6 lg:-mx-10 lg:px-10"
-    >
-      <div
-        class="mx-auto w-full max-w-[980px] text-center"
-      >
+    <div class="relative z-10 -mx-4 border-b app-border bg-transparent px-4 py-10 sm:-mx-6 sm:px-6 lg:-mx-10 lg:px-10">
+      <div class="mx-auto w-full max-w-[980px] text-center">
         <div class="flex flex-col items-center gap-4">
           <div class="hero-reveal-1 flex items-center gap-2 text-[13px] font-semibold app-text-primary">
             <Sparkles class="size-4 app-text-muted" />
             Hukuki Asistan
           </div>
           <div class="hero-reveal-2 text-[28px] font-semibold leading-tight tracking-[0.02em] app-text-primary md:text-[36px]">
-            Türkiye'nin hukuk zekâsı altyapısı
+            Türkiye'nin Hukuki Zekâsı Altyapısı
           </div>
           <div class="hero-reveal-3 text-[12px] uppercase tracking-[0.32em] app-text-muted">
             Legal AI Tech
@@ -176,11 +172,12 @@ onUnmounted(() => {
         </div>
 
         <form class="mt-8" @submit.prevent="runSearch">
+          <!-- glass-shell BURADA -->
           <div class="glass-shell hero-reveal-5 rounded-3xl p-3 sm:p-4">
             <div class="search-shell flex flex-col gap-3 sm:flex-row sm:items-center">
-              <div
-                class="relative flex-1 rounded-2xl border app-border bg-transparent ring-0 focus-within:border-slate-300"
-              >
+              
+              <!-- search-input-shell BURADA -->
+              <div class="search-input-shell relative flex-1 rounded-2xl border app-border bg-transparent ring-0 transition-all">
                 <div class="absolute left-4 top-1/2 -translate-y-1/2 app-text-muted">
                   <Search class="size-5" />
                 </div>
@@ -197,7 +194,8 @@ onUnmounted(() => {
                 <div class="text-xs font-medium tracking-[0.08em] app-text-muted">
                   Sonuç sayısı
                 </div>
-                <div class="inline-flex rounded-2xl border app-border app-surface-soft p-1 shadow-sm backdrop-blur">
+                <!-- k-shell BURADA -->
+                <div class="k-shell inline-flex rounded-2xl border app-border p-1 shadow-sm transition-all">
                   <button
                     v-for="opt in kOptions"
                     :key="opt.label"
@@ -205,7 +203,7 @@ onUnmounted(() => {
                     class="rounded-xl px-3 py-2 text-xs font-semibold transition"
                     :class="
                       k === opt.value
-                        ? 'app-accent-strong shadow-sm'
+                        ? 'app-accent-strong shadow-sm active-k'
                         : 'app-text-secondary hover:app-surface-soft'
                     "
                     @click="k = opt.value"
@@ -247,183 +245,74 @@ onUnmounted(() => {
 
     <div v-if="hasSearched" class="mt-8">
       <div v-if="loading" class="grid gap-3">
-        <div
-          v-for="i in 3"
-          :key="i"
-          class="h-[150px] animate-pulse rounded-2xl border app-border app-surface"
-        />
+        <div v-for="i in 3" :key="i" class="h-[150px] animate-pulse rounded-2xl border app-border app-surface" />
       </div>
-
       <div v-else class="grid gap-4">
         <CaseResultCard v-for="item in visibleResults" :key="item.id" :item="item" @readMore="openDetails" />
-        <div
-          v-if="visibleCount < results.length"
-          v-intersect="loadMoreResults"
-          class="h-3 w-full"
-          aria-hidden="true"
-        />
-      </div>
-
-      <div v-if="!loading && results.length === 0" class="rounded-2xl border app-border app-surface p-6 text-sm app-text-muted">
-        Sonuç bulunamadı. Daha genel bir ifade deneyin veya hızlı etiketlerden birini seçin.
+        <div v-if="visibleCount < results.length" v-intersect="loadMoreResults" class="h-3 w-full" aria-hidden="true" />
       </div>
     </div>
-
     <CaseDetailModal :open="modalOpen" :case-item="selected" @close="modalOpen = false" />
   </div>
 </template>
 
 <style scoped>
-.hero-reveal-1,
-.hero-reveal-2,
-.hero-reveal-3,
-.hero-reveal-4,
-.hero-reveal-5,
-.hero-reveal-6 {
+/* 1. ANİMASYONLAR */
+.hero-reveal-1, .hero-reveal-2, .hero-reveal-3, .hero-reveal-4, .hero-reveal-5, .hero-reveal-6 {
   animation: heroReveal 700ms ease both;
 }
+.hero-reveal-2 { animation-delay: 120ms; }
+.hero-reveal-3 { animation-delay: 220ms; }
+.hero-reveal-4 { animation-delay: 320ms; }
+.hero-reveal-5 { animation-delay: 420ms; }
+.hero-reveal-6 { animation-delay: 520ms; }
+@keyframes heroReveal { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
 
-.hero-reveal-2 {
-  animation-delay: 120ms;
-}
-
-.hero-reveal-3 {
-  animation-delay: 220ms;
-}
-
-.hero-reveal-4 {
-  animation-delay: 320ms;
-}
-
-.hero-reveal-5 {
-  animation-delay: 420ms;
-}
-
-.hero-reveal-6 {
-  animation-delay: 520ms;
-}
-
-@keyframes heroReveal {
-  from {
-    opacity: 0;
-    transform: translateY(14px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.typing-text {
-  font-weight: 600;
-}
-
-.typing-caret {
-  margin-left: 4px;
-  animation: blink 900ms steps(2, start) infinite;
-}
-
-@keyframes blink {
-  0%,
-  100% {
-    opacity: 0.2;
-  }
-  50% {
-    opacity: 1;
-  }
-}
-
+/* 2. ANA ARAMA KABUĞU (O GRİ PERDEYİ YOK EDEN KISIM) */
 .glass-shell {
-  position: relative;
-  background: rgba(255, 255, 255, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  box-shadow: 0 24px 60px -28px rgba(15, 23, 42, 0.35);
-  backdrop-filter: blur(18px);
+  transition: all 0.4s ease-in-out;
 }
 
-:global(html[data-theme='dark']) .glass-shell {
-  background: rgba(15, 23, 42, 0.35);
-  border: 1px solid rgba(148, 163, 184, 0.25);
-  box-shadow: 0 30px 80px -34px rgba(0, 0, 0, 0.7);
+/* DARK MODE ZORLAMASI */
+/* :deep() kullanarak Vue'nun data-v attribute'larını baypas ediyoruz */
+:global(.dark) :deep(.glass-shell),
+:global(html[data-theme='dark']) :deep(.glass-shell),
+:global(.dark) .glass-shell {
+  background: #0f172a !important; /* TAM NAVY BLUE */
+  background-color: #0f172a !important;
+  border: 1px solid rgba(56, 189, 248, 0.2) !important;
+  backdrop-filter: none !important; /* Gri pusun sebebi bu, sildik! */
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7) !important;
 }
 
-.glass-shell::before {
-  content: '';
-  position: absolute;
-  inset: -1px;
-  border-radius: 1.5rem;
-  padding: 1px;
-  background: linear-gradient(120deg, rgba(99, 102, 241, 0.4), rgba(14, 165, 233, 0.2), rgba(99, 102, 241, 0.1));
-  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  pointer-events: none;
+/* 3. INPUT ALANI (İÇ KUTU) */
+:global(.dark) :deep(.search-input-shell) {
+  background: #020617 !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
 }
 
-.search-shell {
-  transition: transform 240ms ease, box-shadow 240ms ease;
+/* 4. SONUÇ SAYISI (K-SHELL) */
+:global(.dark) :deep(.k-shell) {
+  background: #1e293b !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
 }
 
-.search-shell:focus-within {
-  transform: scale(1.015);
+/* 5. TYPING VE METİNLER */
+.typing-text { font-weight: 600; color: #38bdf8; }
+.typing-caret { margin-left: 4px; animation: blink 900ms steps(2, start) infinite; color: #38bdf8; }
+@keyframes blink { 0%, 100% { opacity: 0.2; } 50% { opacity: 1; } }
+
+:global(.dark) .app-text-primary { color: #ffffff !important; }
+:global(.dark) .app-text-secondary { color: #e2e8f0 !important; }
+
+/* 6. ARA BUTONU */
+.search-submit {
+  background: linear-gradient(135deg, #0ea5e9, #6366f1) !important;
+  color: white !important;
+  border: none !important;
 }
 
-.search-shell:focus-within .search-submit {
-  animation: pulseGlow 1.8s ease-in-out infinite;
-}
-
-@keyframes pulseGlow {
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.25);
-  }
-  50% {
-    box-shadow: 0 0 0 8px rgba(59, 130, 246, 0);
-  }
-}
-
-.mesh-blob {
-  position: absolute;
-  width: 420px;
-  height: 420px;
-  filter: blur(80px);
-  opacity: 0.3;
-  animation: floatBlob 18s ease-in-out infinite;
-}
-
-.mesh-blob-1 {
-  top: -160px;
-  left: -120px;
-  background: rgba(30, 64, 175, 0.4);
-}
-
-.mesh-blob-2 {
-  bottom: -200px;
-  right: -140px;
-  background: rgba(15, 23, 42, 0.4);
-  animation-delay: -6s;
-}
-
-.mesh-blob-3 {
-  top: 30%;
-  right: 10%;
-  background: rgba(51, 65, 85, 0.35);
-  animation-delay: -12s;
-}
-
-:global(html[data-theme='dark']) .mesh-blob {
-  opacity: 0.5;
-}
-
-@keyframes floatBlob {
-  0%,
-  100% {
-    transform: translate3d(0, 0, 0) scale(1);
-  }
-  50% {
-    transform: translate3d(30px, -20px, 0) scale(1.05);
-  }
-}
+/* ARKA PLAN BLOBLARI */
+.mesh-blob { position: absolute; width: 420px; height: 420px; filter: blur(80px); opacity: 0.2; }
+:global(.dark) .mesh-blob-1 { background: rgba(30, 58, 138, 0.4); }
 </style>
-

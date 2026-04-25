@@ -1,7 +1,10 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+/* 1. TAILWIND CORE DIRECTIVES - Bunlar olmadan Tailwind sınıfları çalışmaz */
 @import "tailwindcss";
 
-/* 1. GLOBAL LIGHT THEME VARIABLES */
+/* Kendi font ve değişkenlerin buradan aşağıya devam edebilir */
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap");
+
+/* 2. GLOBAL LIGHT THEME VARIABLES */
 :root {
   --app-bg: #f8fafc;
   --app-surface: #ffffff;
@@ -17,39 +20,41 @@
   --app-accent-strong-text: #ffffff;
 }
 
-/* 2. PREMIUM DARK THEME VARIABLES (DEEP BLACK) */
-html[data-theme='dark'] {
-  --app-bg: #050505; /* Gerçek Siyah - OLED Etkisi */
-  --app-surface: rgba(255, 255, 255, 0.03); 
-  --app-surface-soft: rgba(255, 255, 255, 0.05);
-  --app-border: rgba(255, 255, 255, 0.08); /* İnce ve zarif sınırlar */
+/* 3. PREMIUM DARK THEME VARIABLES (DEEP BLACK) */
+/* Hem data-theme hem de .dark class'ı için tanımladık (Çifte koruma) */
+html[data-theme='dark'],
+html.dark {
+  --app-bg: #000000;
+  --app-surface: #090909;
+  --app-surface-soft: #111111;
+  --app-border: rgba(255, 255, 255, 0.12);
   --app-text-primary: #ffffff;
-  --app-text-secondary: #94a3b8;
-  --app-text-muted: #64748b;
-  --app-accent: rgba(255, 255, 255, 0.1);
+  --app-text-secondary: #cbd5e1;
+  --app-text-muted: #94a3b8;
+  --app-accent: rgba(255, 255, 255, 0.12);
   --app-accent-contrast: #ffffff;
-  --app-accent-hover: rgba(255, 255, 255, 0.15);
+  --app-accent-hover: rgba(255, 255, 255, 0.2);
   --app-accent-strong: #ffffff;
-  --app-accent-strong-text: #050505;
+  --app-accent-strong-text: #000000;
 }
 
-/* 3. BASE STYLES */
+/* BASE STYLES */
 html, body {
   height: 100%;
   margin: 0;
 }
 
 body {
-  background: var(--app-bg);
+  background-color: var(--app-bg);
   color: var(--app-text-primary);
-  font-family: "Inter", "Satoshi", "SF Pro Display", system-ui, -apple-system, sans-serif;
-  transition: background-color 0.3s ease; /* Tema geçişini yumuşatır */
+  font-family: "Manrope", sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* 4. COMPONENT CLASSES */
-.app-bg { background: var(--app-bg); }
-.app-surface { background: var(--app-surface); }
-.app-surface-soft { background: var(--app-surface-soft); }
+/* Mevcut Component Class'ların */
+.app-bg { background-color: var(--app-bg); }
+.app-surface { background-color: var(--app-surface); }
+.app-surface-soft { background-color: var(--app-surface-soft); }
 .app-border { border-color: var(--app-border); }
 .app-text-primary { color: var(--app-text-primary); }
 .app-text-secondary { color: var(--app-text-secondary); }
@@ -67,9 +72,9 @@ body {
 }
 
 html[data-theme='dark'] .modal-surface {
-  background: #0d1117; /* Modal içi derin koyu */
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+  background: #070707;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 28px 54px -18px rgba(0, 0, 0, 0.95);
 }
 
 .modal-scroll {
@@ -99,4 +104,22 @@ html[data-theme='dark'] .modal-highlight {
 }
 html[data-theme='dark'] ::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.1);
+}
+html, body {
+  overflow-x: hidden !important;
+  width: 100%;
+  position: relative;
+  /* Bazı tarayıcılarda oluşan beyaz boşlukları engeller */
+  background-color: var(--app-bg); 
+}
+
+/* 2. Negatif marginlerin kutu modelini bozmasını engeller */
+* {
+  box-sizing: border-box;
+}
+
+/* 3. Sayfa geçişlerinde sağda oluşan anlık beyaz şeridi yok eder */
+#app {
+  width: 100%;
+  overflow-x: hidden;
 }

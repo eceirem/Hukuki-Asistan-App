@@ -14,7 +14,6 @@ const tone = computed(() => {
       fill: 'bg-emerald-500',
       text: 'text-emerald-700',
       badge: 'bg-emerald-50 ring-emerald-200',
-      label: 'Yüksek Güven',
     }
   }
   if (normalizedScore.value >= 50) {
@@ -23,7 +22,6 @@ const tone = computed(() => {
       fill: 'bg-amber-500',
       text: 'text-amber-700',
       badge: 'bg-amber-50 ring-amber-200',
-      label: 'Orta Güven',
     }
   }
   return {
@@ -31,7 +29,6 @@ const tone = computed(() => {
     fill: 'bg-rose-500',
     text: 'text-rose-700',
     badge: 'bg-rose-50 ring-rose-200',
-    label: 'Düşük Güven',
   }
 })
 </script>
@@ -44,7 +41,7 @@ const tone = computed(() => {
     :aria-label="`Model güven skoru: %${normalizedScore}`"
   >
     <div class="flex items-center justify-between gap-2 text-[11px] font-semibold">
-      <span>{{ tone.label }}</span>
+      <span>Eşleşme Oranı</span>
       <span>%{{ normalizedScore }}</span>
     </div>
     <div class="mt-2 h-1.5 w-full overflow-hidden rounded-full" :class="tone.rail">

@@ -16,7 +16,13 @@ export const useUiStore = defineStore('ui', {
   }),
   actions: {
     applyTheme(mode) {
+      // Hem data-theme hem de Tailwind'in resmi 'dark' class'ını ekliyoruz. Çakışma bitiyor.
       document.documentElement.setAttribute('data-theme', mode)
+      if (mode === 'dark') {
+        document.documentElement.classList.add('dark')
+      } else {
+        document.documentElement.classList.remove('dark')
+      }
       this.theme = mode
     },
     initTheme() {
