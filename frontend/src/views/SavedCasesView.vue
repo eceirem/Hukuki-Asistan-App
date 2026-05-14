@@ -22,7 +22,7 @@ function openDetails(item) {
   <div>
     <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
       <div>
-        <div class="text-sm font-semibold app-text-primary">Kaydedilmis Kararlar </div>
+        <div class="text-sm font-semibold app-text-primary">Kaydedilmiş Kararlar </div>
         <div class="mt-1 text-xs app-text-muted">
           Kaydettiğiniz emsal kararlar burada saklanır.
         </div>
@@ -41,7 +41,7 @@ function openDetails(item) {
     </div>
 
     <div v-if="items.length === 0" class="mt-7 rounded-2xl border app-border app-surface p-6">
-      <div class="text-sm font-semibold app-text-primary">Henuz kaydedilmis karar yok.</div>
+      <div class="text-sm font-semibold app-text-primary">Henüz kaydedilmiş karar yok.</div>
       <div class="mt-2 text-sm app-text-secondary">
         Arama sonuçlarında yer alan yer imi ikonuna tıklayarak kararları kaydedebilirsiniz.
       </div>

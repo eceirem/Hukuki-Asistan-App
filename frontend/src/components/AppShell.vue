@@ -3,10 +3,16 @@ import { computed } from 'vue'
 import { PanelLeftOpen } from 'lucide-vue-next'
 import AppSidebar from './AppSidebar.vue'
 import { useUiStore } from '../stores/ui'
+import { useAuthStore } from '../stores/auth'
 
 const ui = useUiStore()
+const auth = useAuthStore()
 
-const contentOffsetClass = computed(() => (ui.sidebarCollapsed ? 'lg:pl-[92px]' : 'lg:pl-[280px]'))
+const showSidebar = computed(() => auth.isAuthenticated)
+const contentOffsetClass = computed(() => {
+  if (!showSidebar.value) return ''
+  return ui.sidebarCollapsed ? 'lg:pl-[92px]' : 'lg:pl-[280px]'
+})
 </script>
 
 <template>
@@ -15,13 +21,14 @@ const contentOffsetClass = computed(() => (ui.sidebarCollapsed ? 'lg:pl-[92px]' 
        :class="ui.theme === 'dark' ? 'bg-[#050505] text-white' : 'bg-white text-slate-900'">
     
     <AppSidebar
+      v-if="showSidebar"
       :collapsed="ui.sidebarCollapsed"
       :mobile-open="ui.mobileSidebarOpen"
       @toggle-sidebar="ui.toggleSidebar"
       @close-mobile="ui.closeMobileSidebar"
     />
 
-    <div class="fixed right-4 top-4 z-50 flex lg:hidden items-center gap-2">
+    <div v-if="showSidebar" class="fixed right-4 top-4 z-50 flex lg:hidden items-center gap-2">
       <button
         type="button"
         class="grid size-10 place-items-center rounded-xl border app-border app-surface app-text-secondary shadow-md transition hover:app-surface-soft hover:app-text-primary"

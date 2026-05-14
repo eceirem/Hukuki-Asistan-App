@@ -1,7 +1,8 @@
 <script setup>
 // Script kısmın aynı, dokunmana gerek yok.
-import { onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { Sparkles, ArrowRight } from 'lucide-vue-next'
+import { useAuthStore } from '../stores/auth'
 
 const phrases = [
   'Ankara Üniversitesi Bilgisayar Mühendisliği',
@@ -16,6 +17,8 @@ const isDeleting = ref(false)
 const phraseIndex = ref(0)
 const typingSpeed = ref(80)
 let typingTimer
+const auth = useAuthStore()
+const startLink = computed(() => (auth.isAuthenticated ? '/search' : '/login'))
 
 function tickTyping() {
   const current = phrases[phraseIndex.value] ?? ''
@@ -88,7 +91,7 @@ onUnmounted(() => {
       </p>
 
       <div class="hero-reveal-6 mt-7 flex flex-wrap items-center justify-center gap-3">
-        <RouterLink to="/search" class="hero-cta-primary inline-flex items-center gap-2 rounded-2xl px-7 py-3.5 text-sm font-semibold transition">
+        <RouterLink :to="startLink" class="hero-cta-primary inline-flex items-center gap-2 rounded-2xl px-7 py-3.5 text-sm font-semibold transition">
           Aramayı Başlat <ArrowRight class="size-4" />
         </RouterLink>
         <RouterLink to="/saved" class="hero-cta-secondary inline-flex items-center gap-2 rounded-2xl border px-7 py-3.5 text-sm font-semibold transition">
