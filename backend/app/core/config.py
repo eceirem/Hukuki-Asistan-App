@@ -30,15 +30,14 @@ class Settings(BaseSettings):
     #   OFF (default) → backend returns the best-matching chunk text verbatim;
     #                   the UI uses it as the retrieval explanation.
     #   ON            → backend calls xai_service.generate_xai_explanation which
-    #                   hits the Hugging Face Inference Router (OpenAI-compatible).
+    #                   hits the OpenRouter API (OpenAI-compatible).
     ENABLE_LLM_XAI: bool = False
 
-    # ── Hugging Face Inference Router (XAI provider) ────────────────────────
+    # ── OpenRouter (XAI provider) ───────────────────────────────────────────
     # Only used when ENABLE_LLM_XAI=True.
-    HF_TOKEN: str = ""
-    LLM_API_URL: str = "https://router.huggingface.co/v1"
+    LLM_API_URL: str = "https://openrouter.ai/api/v1"
     LLM_API_TOKEN: str = ""
-    LLM_MODEL_NAME: str = "ytu-ce-cosmos/Turkish-Gemma-9b-T1"
+    LLM_MODEL_NAME: str = "meta-llama/llama-3.2-3b-instruct"
 
 
 settings = Settings()

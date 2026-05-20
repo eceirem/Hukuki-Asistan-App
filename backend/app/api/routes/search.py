@@ -29,12 +29,16 @@ async def search(
     # 2. Hybrid BM25 + cosine search — returns (Case, score, best_chunk_text) tuples.
     hits = await crud_case.search_cases(db, body.query, embedding, body.limit)
 
-    # 3. Optionally generate per-hit XAI explanations in parallel.
+    # 3. Optionally generate XAI explanations for all results concurrently.
     #    Default (ENABLE_LLM_XAI=False): the UI uses ``matched_chunk_text`` as
     #    the retrieval explanation — zero extra latency, fully deterministic.
+    #    asyncio.gather fans out all LLM calls in parallel so total latency is
+    #    bounded by the slowest single call, not the sum of all calls.
     if settings.ENABLE_LLM_XAI and hits:
-        xai_texts = await asyncio.gather(
-            *(generate_xai_explanation(body.query, chunk or "") for _, _, chunk in hits)
+        xai_texts: list[str | None] = list(
+            await asyncio.gather(
+                *(generate_xai_explanation(body.query, chunk or "") for _, _, chunk in hits)
+            )
         )
     else:
         xai_texts = [None] * len(hits)
