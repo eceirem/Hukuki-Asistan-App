@@ -3,34 +3,37 @@
 Gated by ``settings.ENABLE_LLM_XAI``.  When the flag is OFF (the default), the
 search pipeline simply surfaces the best-matching chunk text verbatim and this
 module is never invoked.  When the flag is ON, the search route awaits
-:func:`generate_xai_explanation` once per retrieved case to obtain a
+:func:`generate_xai_explanation` for the top-1 retrieved case to obtain a
 human-readable answer to "Neden bu karar getirildi?".
 
 Provider
 ────────
-Hugging Face ``InferenceClient`` (``huggingface_hub`` SDK).  ``_call_llm`` is a
-plain synchronous function; the async public interface dispatches it through
-``asyncio.to_thread`` so the FastAPI event loop is never blocked.
+OpenRouter API (OpenAI-compatible) via the official ``openai`` Python SDK
+(``AsyncOpenAI``).  The SDK handles base-URL resolution correctly and keeps
+the FastAPI event loop unblocked.
 
 Configure in ``.env``:
-    HF_TOKEN = hf_...
-    ENABLE_LLM_XAI = True
+    LLM_API_URL=https://openrouter.ai/api/v1
+    LLM_API_TOKEN=sk-or-v1-...
+    LLM_MODEL_NAME=meta-llama/llama-3.2-3b-instruct:free
+    ENABLE_LLM_XAI=True
 """
 
 from __future__ import annotations
 
-import asyncio
 import logging
-import os
 import re
 
-from huggingface_hub import InferenceClient
+from openai import AsyncOpenAI
+
+from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
-
-# No `:fastest` suffix — that suffix triggers a 400 from the HF router.
-_MODEL = "ytu-ce-cosmos/Turkish-Gemma-9b-T1"
+client = AsyncOpenAI(
+    base_url=settings.LLM_API_URL,
+    api_key=settings.LLM_API_TOKEN,
+)
 
 _SYSTEM_MESSAGE = (
     "Sen katı bir hukuki asistansın. "
@@ -59,33 +62,6 @@ AÇIKLAMA:"""
 _TAG_RE = re.compile(r"<.*?>", re.DOTALL)
 
 
-def _call_llm(prompt: str) -> str:
-    """Synchronous call to the HF Inference API via ``huggingface_hub``.
-
-    Creates a fresh ``InferenceClient`` per call (lightweight and stateless).
-    All errors are caught and logged so the caller always receives a string.
-    """
-    try:
-        client = InferenceClient(api_key=os.environ.get("HF_TOKEN"))
-        completion = client.chat.completions.create(
-            model=_MODEL,
-            messages=[
-                {"role": "system", "content": _SYSTEM_MESSAGE},
-                {"role": "user", "content": prompt},
-            ],
-            temperature=0.1,
-            max_tokens=500,
-        )
-        raw = completion.choices[0].message.content.strip()
-        # Belt-and-suspenders: strip any leaked thought tags even if the system
-        # message succeeded in suppressing most of them.
-        return re.sub(r"<.*?>", "", raw).strip()
-
-    except Exception as exc:  # noqa: BLE001
-        logger.exception("LLM XAI call failed: %s", exc)
-        return ""
-
-
 async def generate_xai_explanation(query: str, matched_chunk: str) -> str:
     """Produce a 1–2 sentence Turkish explanation of why a case was retrieved.
 
@@ -103,4 +79,24 @@ async def generate_xai_explanation(query: str, matched_chunk: str) -> str:
         return ""
 
     prompt = _USER_TEMPLATE.format(query=query.strip(), chunk=matched_chunk.strip())
-    return await asyncio.to_thread(_call_llm, prompt)
+
+    try:
+        completion = await client.chat.completions.create(
+            model="meta-llama/llama-3.2-3b-instruct",
+            messages=[
+                {"role": "system", "content": _SYSTEM_MESSAGE},
+                {"role": "user", "content": prompt},
+            ],
+            temperature=0.1,
+            max_tokens=500,
+            extra_headers={
+                "HTTP-Referer": "http://localhost:5173",
+                "X-OpenRouter-Title": "Hukuki Asistan",
+            },
+        )
+        raw: str = completion.choices[0].message.content.strip()
+        return _TAG_RE.sub("", raw).strip()
+
+    except Exception as exc:  # noqa: BLE001
+        logger.exception("LLM XAI call failed: %s", exc)
+        return ""
