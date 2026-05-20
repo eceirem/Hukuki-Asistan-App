@@ -1,8 +1,31 @@
-# ⚖️ Hukukî Asistan (Legal Assistant AI)
+# Hukuki Asistan Uygulaması (Hukuki-Asistan-App) ⚖️
 
-**"Türk Hukukunda Derin Öğrenme Tabanlı Gerekçeli Emsal Karar Tespiti ve Özetleme Sistemi"**
+**"Türk Hukukunda Derin Öğrenme Tabanlı Gerekçeli Emsal Karar Tespiti ve Özetleme Sistemi — Arayüz ve Servis Katmanı"**
 
-Hukukî Asistan, hukuk profesyonellerinin emsal karar arama süreçlerini hızlandırmak amacıyla, geleneksel anahtar kelime eşleşmesi yerine **"Retrieve & Re-rank"** (Getir ve Yeniden Sırala) prensibine dayalı hibrit bir derin öğrenme mimarisi sunan modern bir legal-tech platformudur.
+![Conference](https://img.shields.io/badge/Conference-ITTA%202026%20%28Strong%20Accept%29-blue)
+![Award](https://img.shields.io/badge/Award-Bili%C5%9Fim%20Vadisi%201st%20Place-orange)
+![Workshop](https://img.shields.io/badge/Workshop-TBB%20Compliant-purple)
+![License](https://img.shields.io/badge/License-MIT-yellow)
+![Vue.js](https://img.shields.io/badge/Frontend-Vue.js%203-green)
+![Python](https://img.shields.io/badge/Python-3.12-blue)
+![Flask](https://img.shields.io/badge/Backend-Flask-lightgrey)
+![Tailwind](https://img.shields.io/badge/UI-Tailwind%20v4-blueviolet)
+
+---
+
+Bu repo, **Ankara Üniversitesi Mühendislik Fakültesi Bilgisayar Mühendisliği Bölümü** son sınıf mezuniyet projesi (BLM 4061-A / BLM 4062 Bilgisayar Mühendisliği Tasarımı) kapsamında geliştirilen **Hukuki Asistan** ekosisteminin kullanıcı arayüzü (Vue.js Frontend) ve API servis (Flask Backend) katmanlarını barındıran ana uygulama reposudur. Modelle ilgili diğer bağlantılar [Ekosistem Bağlantıları ve Navigasyon](#ekosistem-bağlantıları-ve-navigasyon) kısmında belirtilmiştir.
+
+Sistem, hukuk profesyonellerinin emsal karar arama süreçlerini hızlandırmak amacıyla, geleneksel anahtar kelime eşleşmesi yerine **"Retrieve & Re-rank"** (Getir ve Yeniden Sırala) prensibine dayalı hibrit bir derin öğrenme mimarisini canlı bir web platformu olarak sunmaktadır.
+
+---
+
+## 🔗 Ekosistem Bağlantıları ve Navigasyon
+
+Hukuki Asistan ekosistemini oluşturan diğer tüm modüllere, model ağırlıklarına ve derin ar-ge kodlarına aşağıdaki kurumsal bağlantılar üzerinden erişebilirsiniz:
+
+* 🧠 **Hukuki Asistan Çekirdek Model & Kod Reposu (Adım 1-5 Not Defterleri):** [`Hukuki-Asistan Core ML`](https://github.com/eceiremsiser/Hukuki-Asistan)
+* 🤗 **Hugging Face Model Hub (Fine-Tune Edilmiş Şampiyon Ağırlıklar):** [`EceIremSiser/berturk-legal-chunk-retriever`](https://huggingface.co/EceIremSiser/berturk-legal-chunk-retriever)
+* 📊 **Akademik Proje Sunum Dosyası (PDF):** [`presentation/Hukuki_Asistan_Final_Presentation.pdf`](./presentation/Hukuki_Asistan_Final_Presentation.pdf)
 
 ---
 
@@ -61,11 +84,15 @@ pip install -r requirements.txt
 python app.py
 ```
 ## 👥 Ekip ve Danışman
-### Geliştiriciler: Ece İrem Şişer & Derda Sina Günay
 
-### Danışman: Prof. Dr. Refik Samet
+#### Geliştiriciler: 
+* Ece İrem Şişer & Derda Sina Günay
 
-### Kurum: Ankara Üniversitesi Mühendislik Fakültesi, Bilgisayar Mühendisliği Bölümü
+#### Danışman: 
+* Prof. Dr. Refik Samet
+
+#### Kurum: 
+* Ankara Üniversitesi Mühendislik Fakültesi, Bilgisayar Mühendisliği Bölümü
 
 ---
 *Bu proje, Ankara Üniversitesi Bilgisayar Mühendisliği Bölümü BLM 4061-I/II Proje dersi kapsamında geliştirilmektedir.*
