@@ -1,0 +1,23 @@
+[project]
+name = "backend"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.136.1",
+    "imagekitio>=5.4.0",
+    "python-dotenv>=1.2.2",
+    "uvicorn[standard]>=0.46.0",
+    "sqlalchemy[asyncio]>=2.0.36",
+    "asyncpg>=0.30.0",
+    "pgvector>=0.3.6",
+    "pydantic[email]>=2.9.0",
+    "pydantic-settings>=2.6.0",
+    "python-jose[cryptography]>=3.3.0",
+    "bcrypt>=4.0.0",
+    "sentence-transformers>=3.0.0",
+    "pandas>=2.0.0",
+    "python-multipart>=0.0.28",
+    "openai>=1.0.0",
+]

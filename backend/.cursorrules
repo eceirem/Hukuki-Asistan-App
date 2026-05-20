@@ -1,0 +1,24 @@
+# Hukukî Asistan (Legal Assistant) - Backend Ruleset
+
+You are an expert Python Backend and NLP Engineer. When writing code for this project, you MUST STRICTLY ADHERE TO THE FOLLOWING STANDARDS:
+
+1. TECHNOLOGY STACK & STANDARDS:
+- Python 3.12+
+- FastAPI (Strictly Async)
+- SQLAlchemy 2.0+ (Strictly Async, use `Mapped` and `mapped_column` exclusively)
+- Pydantic v2 (DO NOT use `class Config:`. You must use `model_config = ConfigDict(from_attributes=True)`)
+- PostgreSQL (asyncpg) + pgvector (Cosine Similarity) + tsvector (BM25 Full-Text Search)
+- Dependency Management: Only suggest `uv` commands (e.g., `uv add`, `uv run`). Do not use pip or poetry.
+
+2. FASTAPI & PYTHON BEST PRACTICES (Critical):
+- Use `def` for pure functions and `async def` for asynchronous I/O operations (Database, external APIs).
+- Use `lifespan` context managers INSTEAD OF `@app.on_event("startup")` or shutdown events.
+- Implement Early Returns: Catch errors and invalid states at the beginning of functions using the if-return pattern. Avoid deeply nested `if` statements and unnecessary `else` blocks. Place the "Happy Path" at the very end of the function for readability.
+- Adopt the RORO (Receive an Object, Return an Object) pattern. Always use Pydantic models for input validation and response schemas. Never return raw dictionaries.
+- Use descriptive variable names with auxiliary verbs for booleans (e.g., `is_active`, `has_permission`).
+
+3. ARCHITECTURE & SEPARATION OF CONCERNS (SoC):
+- DO NOT write heavy business logic, model loading, or database queries inside route functions.
+- API Routes (`app/api/routes/`) should only receive requests, call the appropriate service/crud functions, and return responses.
+- All database operations and hybrid search queries MUST be isolated within the `app/crud/` directory.
+- NLP operations, BERT model loading, and text vectorization MUST be completely isolated within `app/services/nlp_service.py` to prevent blocking the API event loop.

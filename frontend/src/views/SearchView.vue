@@ -1,17 +1,28 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { Search, Sparkles } from 'lucide-vue-next'
-import { mockSearchCases } from '../services/mockSearch'
+import axios from 'axios'
 import CaseResultCard from '../components/CaseResultCard.vue'
 import CaseDetailModal from '../components/CaseDetailModal.vue'
+import { useAuthStore } from '../stores/auth' // Adjust the import path if your actual store file is different
+
+const authStore = useAuthStore()
+
+const API_BASE = import.meta.env.VITE_API_BASE ?? 'http://localhost:8000'
 
 const query = ref('')
-const k = ref(7)
+// Default result-set size aligns with the backend CaseSearchQuery default
+// (app/schemas/case.py — `limit: int = Field(default=10, ge=1, le=100)`).
+const k = ref(10)
+// "Tümü" maps to the backend's maximum allowed limit (le=100). The pgvector
+// HNSW scan is happy at this size and the BM25 candidate pool is 100 anyway,
+// so this is effectively "everything we ranked".
+const ALL_LIMIT = 100
 const kOptions = [
   { label: 'İlk 5', value: 5 },
   { label: 'İlk 7', value: 7 },
   { label: 'İlk 10', value: 10 },
-  { label: 'Tümü', value: 'all' },
+  { label: 'Tümü', value: ALL_LIMIT },
 ]
 
 const quickTags = [
@@ -25,6 +36,14 @@ const quickTags = [
 ]
 
 const loading = ref(false)
+// `slowLoading` flips to true once a /search call has been pending longer
+// than SLOW_LOADING_THRESHOLD_MS. We use it to progressively reveal the LLM
+// warmup banner: short responses never show it (would be a lie), but the
+// multi-second first-call cold-start of the local Turkish-Gemma model
+// always trips it and the user gets a clear explanation of the wait.
+const slowLoading = ref(false)
+const SLOW_LOADING_THRESHOLD_MS = 1200
+let slowLoadingTimer = null
 const hasSearched = ref(false)
 const results = ref([])
 const visibleCount = ref(8)
@@ -46,9 +65,9 @@ const resultCountText = computed(() => {
 })
 
 const typingPhrases = [
-'Telif Hakkı İhlali',
-'Marka Koruması',
-'İftira Davaları',
+  'Telif Hakkı İhlali',
+  'Marka Koruması',
+  'İftira Davaları',
 ]
 
 const typedText = ref('')
@@ -82,20 +101,63 @@ function tickTyping() {
   typingTimer = window.setTimeout(tickTyping, typingSpeed.value)
 }
 
+function clearSlowLoadingTimer() {
+  if (slowLoadingTimer) {
+    window.clearTimeout(slowLoadingTimer)
+    slowLoadingTimer = null
+  }
+}
+
 async function runSearch() {
   hasSearched.value = true
   loading.value = true
+  slowLoading.value = false
+  clearSlowLoadingTimer()
+  slowLoadingTimer = window.setTimeout(() => {
+    if (loading.value) slowLoading.value = true
+  }, SLOW_LOADING_THRESHOLD_MS)
   visibleCount.value = PAGE_SIZE
   try {
-    results.value = await mockSearchCases({ query: query.value, k: k.value })
+    const accessToken = authStore.accessToken
+    if (!accessToken) {
+      results.value = []
+      return
+    }
+    const body = {
+      query: query.value,
+      limit: k.value,
+    }
+    const response = await axios.post(
+      `${API_BASE}/search/`,
+      body,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    )
+    results.value = Array.isArray(response.data) ? response.data : []
+  } catch (e) {
+    results.value = []
   } finally {
     loading.value = false
+    slowLoading.value = false
+    clearSlowLoadingTimer()
   }
 }
 
 function onQuickTag(tag) {
   query.value = tag
   runSearch()
+}
+
+function onSelectLimit(value) {
+  k.value = value
+  // If the user already has results on screen, re-run with the new limit so
+  // the change is immediate; otherwise just update state and wait for "Ara".
+  if (hasSearched.value && query.value.trim().length > 0) {
+    runSearch()
+  }
 }
 
 function openDetails(item) {
@@ -138,6 +200,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   if (typingTimer) window.clearTimeout(typingTimer)
+  clearSlowLoadingTimer()
 })
 </script>
 
@@ -206,7 +269,7 @@ onUnmounted(() => {
                         ? 'app-accent-strong shadow-sm active-k'
                         : 'app-text-secondary hover:app-surface-soft'
                     "
-                    @click="k = opt.value"
+                    @click="onSelectLimit(opt.value)"
                   >
                     {{ opt.label }}
                   </button>
@@ -245,6 +308,21 @@ onUnmounted(() => {
 
     <div v-if="hasSearched" class="mt-8">
       <div v-if="loading" class="grid gap-3">
+        <Transition name="warmup-fade">
+          <div
+            v-if="slowLoading"
+            class="warmup-banner flex items-center gap-3 rounded-2xl border app-border px-4 py-3 text-[13px] app-text-secondary"
+            role="status"
+            aria-live="polite"
+          >
+            <span class="warmup-spinner" aria-hidden="true" />
+            <Sparkles class="size-4 app-text-muted" aria-hidden="true" />
+            <span class="leading-relaxed">
+              Hukuki Yapay Zeka modeli belleğe yükleniyor
+              <span class="app-text-muted">(İlk arama biraz sürebilir)…</span>
+            </span>
+          </div>
+        </Transition>
         <div v-for="i in 3" :key="i" class="h-[150px] animate-pulse rounded-2xl border app-border app-surface" />
       </div>
       <div v-else class="grid gap-4">
@@ -315,4 +393,39 @@ onUnmounted(() => {
 /* ARKA PLAN BLOBLARI */
 .mesh-blob { position: absolute; width: 420px; height: 420px; filter: blur(80px); opacity: 0.2; }
 :global(.dark) .mesh-blob-1 { background: rgba(30, 58, 138, 0.4); }
+
+/* LLM WARMUP BANNER — appears only when /search takes longer than the
+ * SLOW_LOADING_THRESHOLD_MS (~1.2 s). Soft gradient backdrop so it reads as
+ * a status hint, not an error. */
+.warmup-banner {
+  background:
+    linear-gradient(135deg, rgba(14, 165, 233, 0.08), rgba(99, 102, 241, 0.08));
+  border-color: rgba(14, 165, 233, 0.25);
+}
+:global(.dark) .warmup-banner {
+  background:
+    linear-gradient(135deg, rgba(14, 165, 233, 0.18), rgba(99, 102, 241, 0.18));
+  border-color: rgba(56, 189, 248, 0.35);
+}
+
+.warmup-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 9999px;
+  border: 2px solid rgba(14, 165, 233, 0.25);
+  border-top-color: #0ea5e9;
+  animation: warmup-spin 0.9s linear infinite;
+}
+@keyframes warmup-spin { to { transform: rotate(360deg); } }
+
+.warmup-fade-enter-active,
+.warmup-fade-leave-active {
+  transition: opacity 280ms ease, transform 280ms ease;
+}
+.warmup-fade-enter-from,
+.warmup-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
+}
 </style>

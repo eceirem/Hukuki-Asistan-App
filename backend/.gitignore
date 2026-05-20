@@ -1,0 +1,23 @@
+# Python geçici dosyaları
+__pycache__/
+*.py[cod]
+
+# Sanal ortam (Senin yapındaki klasör ismi)
+.venv/
+venv/
+
+# Çevresel değişkenler (Hassas bilgiler)
+.env
+
+# IDE ayarları
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+chunks_data.csv
+cases_data.json
+
+pdfs/

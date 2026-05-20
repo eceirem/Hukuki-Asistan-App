@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { BookmarkX, ArrowLeft, ArrowRight } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
 import { useSavedCasesStore } from '../stores/savedCases'
@@ -16,13 +16,17 @@ function openDetails(item) {
   selected.value = item
   modalOpen.value = true
 }
+
+onMounted(() => {
+  saved.fetchSavedCases()
+})
 </script>
 
 <template>
   <div>
     <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
       <div>
-        <div class="text-sm font-semibold app-text-primary">Kaydedilmiş Kararlar </div>
+        <div class="text-sm font-semibold app-text-primary">Kaydedilmiş Kararlar</div>
         <div class="mt-1 text-xs app-text-muted">
           Kaydettiğiniz emsal kararlar burada saklanır.
         </div>
@@ -35,18 +39,37 @@ function openDetails(item) {
           @click="router.push({ name: 'search' })"
         >
           <ArrowLeft class="size-4" />
-          Search
+          Ara
         </button>
       </div>
     </div>
 
-    <div v-if="items.length === 0" class="mt-7 rounded-2xl border app-border app-surface p-6">
+    <!-- Loading skeleton -->
+    <div v-if="saved.loading" class="mt-7 grid gap-3 md:grid-cols-2">
+      <div v-for="i in 4" :key="i" class="h-[160px] animate-pulse rounded-2xl border app-border app-surface" />
+    </div>
+
+    <!-- Error state -->
+    <div v-else-if="saved.error" class="mt-7 rounded-2xl border border-red-200 bg-red-50 p-6 dark:border-red-800 dark:bg-red-950">
+      <div class="text-sm font-semibold text-red-600 dark:text-red-400">{{ saved.error }}</div>
+      <button
+        type="button"
+        class="mt-3 text-xs font-semibold text-red-500 underline hover:no-underline"
+        @click="saved.fetchSavedCases()"
+      >
+        Tekrar dene
+      </button>
+    </div>
+
+    <!-- Empty state -->
+    <div v-else-if="items.length === 0" class="mt-7 rounded-2xl border app-border app-surface p-6">
       <div class="text-sm font-semibold app-text-primary">Henüz kaydedilmiş karar yok.</div>
       <div class="mt-2 text-sm app-text-secondary">
         Arama sonuçlarında yer alan yer imi ikonuna tıklayarak kararları kaydedebilirsiniz.
       </div>
     </div>
 
+    <!-- Cases grid -->
     <div v-else class="mt-7 grid gap-4 md:grid-cols-2">
       <article
         v-for="item in items"
@@ -56,10 +79,10 @@ function openDetails(item) {
         <div class="flex items-start justify-between gap-4">
           <div class="min-w-0">
             <div class="truncate text-[13px] font-semibold app-text-primary">
-              {{ item.metadata.court_name }}
+              {{ item.mahkeme ?? '—' }}
             </div>
             <div class="mt-1 text-xs app-text-muted">
-              {{ item.metadata.karar_no }} • {{ item.metadata.esas_no }}
+              {{ item.karar_no ?? '—' }} • {{ item.esas_no ?? '—' }}
             </div>
           </div>
 
@@ -74,7 +97,7 @@ function openDetails(item) {
         </div>
 
         <p class="mt-4 line-clamp-3 text-sm font-normal leading-relaxed app-text-secondary">
-          {{ item.summary_for_human }}
+          {{ item.sum_human ?? item.dava_konusu ?? '' }}
         </p>
 
         <div class="mt-5">
@@ -90,7 +113,11 @@ function openDetails(item) {
       </article>
     </div>
 
-    <CaseDetailModal :open="modalOpen" :case-item="selected" @close="modalOpen = false" />
+    <CaseDetailModal
+      v-if="selected != null"
+      :open="modalOpen"
+      :case-item="selected"
+      @close="modalOpen = false"
+    />
   </div>
 </template>
-
