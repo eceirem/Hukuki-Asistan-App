@@ -43,7 +43,7 @@ function highlightEntities(text = '') {
   return highlighted
 }
 
-const highlightedSummary = computed(() => highlightEntities(props.item.summary_for_human ?? ''))
+const highlightedSummary = computed(() => highlightEntities(props.item.sum_human ?? ''))
 </script>
 
 <template>
@@ -51,15 +51,15 @@ const highlightedSummary = computed(() => highlightEntities(props.item.summary_f
     class="group relative rounded-2xl border app-border app-surface p-5 shadow-sm transition duration-200 hover:-translate-y-[1px] hover:shadow-[0_10px_24px_-14px_rgba(0,0,0,0.25)]"
   >
     <div class="absolute right-5 top-5">
-      <ConfidenceGauge :score="item.match_score" />
+      <ConfidenceGauge :score="item.score" />
     </div>
 
     <header class="pr-28">
       <div class="text-[13px] font-semibold app-text-primary">
-        {{ item.metadata.court_name }}
+        {{ item.mahkeme }}
       </div>
       <div class="mt-1 text-xs app-text-muted">
-        {{ item.metadata.karar_no }} • {{ item.metadata.esas_no }}
+        {{ item.karar_no }} • {{ item.esas_no }}
       </div>
     </header>
 
@@ -67,7 +67,7 @@ const highlightedSummary = computed(() => highlightEntities(props.item.summary_f
       <div>
         <div class="text-[11px] font-semibold uppercase tracking-[0.18em] app-text-muted">Konu</div>
         <div class="mt-1 text-sm font-normal leading-relaxed app-text-secondary">
-          {{ item.metadata.case_subject || item.meta_data?.case_subject }}
+          {{ item.dava_konusu }}
         </div>
       </div>
       <div>

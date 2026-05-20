@@ -16,7 +16,21 @@ app.use(router)
 app.mount('#app')
 
 useUiStore().initTheme()
-useAuthStore().hydrate()
 
-// hydrate after pinia is available
-useSavedCasesStore().hydrate()
+;(async () => {
+  const auth = useAuthStore()
+  const savedCases = useSavedCasesStore()
+
+  // Immediately populate from localStorage for a fast first render
+  savedCases.hydrate()
+
+  // Re-validate the stored token and fetch a fresh user profile from the API;
+  // this also clears any stale session if the token has expired
+  await auth.hydrate()
+
+  // If a valid session was restored, fetch fresh saved cases so the sidebar
+  // badge is accurate without requiring the user to navigate to the page first
+  if (auth.isAuthenticated) {
+    savedCases.fetchSavedCases()
+  }
+})()

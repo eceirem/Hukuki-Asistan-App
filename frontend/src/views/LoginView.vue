@@ -98,7 +98,7 @@ const password = ref('')
 const error = ref('')
 const message = ref('')
 
-const handleSubmit = () => {
+const handleSubmit = async () => {
   error.value = ''
   message.value = ''
 
@@ -113,7 +113,7 @@ const handleSubmit = () => {
     return
   }
 
-  const result = auth.login(email.value.trim(), password.value)
+  const result = await auth.login(email.value.trim(), password.value)
   if (!result.ok) {
     error.value = result.message
     return

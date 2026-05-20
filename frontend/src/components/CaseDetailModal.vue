@@ -1,7 +1,8 @@
 <script setup>
 import { computed, onMounted, onUnmounted } from 'vue'
-import { XCircle, Bookmark, FileText, Scale, CheckCircle2 } from 'lucide-vue-next'
+import { XCircle, Bookmark, FileText, Scale, CheckCircle2, ExternalLink, Sparkles } from 'lucide-vue-next'
 import { useSavedCasesStore } from '../stores/savedCases'
+import ExpandableText from './ExpandableText.vue'
 
 const props = defineProps({
   open: { type: Boolean, default: false },
@@ -9,6 +10,10 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['close'])
+
+// Backend static-files mount — see app/main.py: `app.mount("/pdfs", StaticFiles(...))`.
+// `dosya_adi` already includes the `.pdf` extension (e.g. "2018_1055.pdf").
+const PDF_BASE = `${import.meta.env.VITE_API_BASE ?? 'http://localhost:8000'}/pdfs`
 
 const saved = useSavedCasesStore()
 const isSaved = computed(() => saved.isSaved(props.caseItem?.id))
@@ -43,9 +48,38 @@ function highlightLegalText(text = '') {
   return highlighted
 }
 
-const factsHtml = computed(() => highlightLegalText(props.caseItem?.segments?.facts_text ?? ''))
-const reasoningHtml = computed(() => highlightLegalText(props.caseItem?.segments?.reasoning_text ?? ''))
-const verdictHtml = computed(() => highlightLegalText(props.caseItem?.segments?.verdict_text ?? ''))
+// Bind to the new judicial-breakdown columns added in app/models/case.py.
+// Note: the per-section paragraphs are now rendered through <ExpandableText>
+// which calls `highlightLegalText` on the visible (truncated or full) slice,
+// so we don't need precomputed HTML refs here anymore.
+const factsText = computed(() => props.caseItem?.tam_olay ?? '')
+const reasoningText = computed(() => props.caseItem?.gerekce ?? '')
+const verdictText = computed(() => props.caseItem?.hukum ?? '')
+
+// "Neden bu karar getirildi?" priority:
+//   1. LLM XAI text when ENABLE_LLM_XAI=True on the backend
+//   2. The best-matching chunk text from Stage 2 of hybrid search (default)
+//   3. The precomputed sum_model summary (final fallback)
+const whyRetrievedText = computed(() => {
+  const item = props.caseItem
+  if (!item) return ''
+  return item.xai_explanation || item.matched_chunk_text || item.sum_model || ''
+})
+
+const whyRetrievedSource = computed(() => {
+  const item = props.caseItem
+  if (!item) return ''
+  if (item.xai_explanation) return 'LLM açıklaması'
+  if (item.matched_chunk_text) return 'En yüksek anlamsal eşleşen parça'
+  if (item.sum_model) return 'Önceden hazırlanmış özet'
+  return ''
+})
+
+const pdfHref = computed(() => {
+  const name = props.caseItem?.dosya_adi
+  if (!name) return null
+  return `${PDF_BASE}/${encodeURIComponent(name)}`
+})
 
 function onKeydown(e) {
   if (!props.open) return
@@ -72,16 +106,16 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
       />
 
       <div
-        class="modal-surface modal-border relative w-full max-w-4xl overflow-hidden rounded-2xl shadow-[0_24px_80px_-24px_rgba(0,0,0,0.45)]"
+        class="modal-surface modal-border relative flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl shadow-[0_24px_80px_-24px_rgba(0,0,0,0.45)]"
       >
         <div class="flex items-start justify-between gap-4 border-b modal-border px-6 py-5">
           <div class="min-w-0">
             <div class="modal-title text-[13px] font-semibold tracking-[0.12em]">
-              {{ caseItem.metadata.court_name }}
+              {{ caseItem.mahkeme }}
             </div>
             <div class="modal-meta mt-2 text-[11px] uppercase tracking-[0.2em]">
-              {{ caseItem.metadata.karar_no }} • {{ caseItem.metadata.esas_no }} •
-              {{ caseItem.metadata.case_subject }}
+              {{ caseItem.karar_no }} • {{ caseItem.esas_no }} •
+              {{ caseItem.dava_konusu }}
             </div>
           </div>
 
@@ -105,13 +139,20 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
           </div>
         </div>
 
-        <div class="modal-scroll max-h-[75vh] overflow-y-auto px-6 py-6">
+        <div class="modal-scroll flex-1 overflow-y-auto px-6 py-6">
           <section class="modal-accent-amber border-l pl-4">
-            <div class="modal-note-title text-[12px] font-semibold tracking-[0.12em]">
+            <div class="modal-note-title flex items-center gap-2 text-[12px] font-semibold tracking-[0.12em]">
+              <Sparkles class="size-3.5" />
               Neden bu karar getirildi?
+              <span
+                v-if="whyRetrievedSource"
+                class="ml-2 rounded-full border app-border px-2 py-0.5 text-[10px] font-medium normal-case tracking-normal app-text-muted"
+              >
+                {{ whyRetrievedSource }}
+              </span>
             </div>
             <div class="modal-note-text mt-2 text-sm italic leading-relaxed">
-              {{ caseItem.xai_explanation }}
+              {{ whyRetrievedText || '—' }}
             </div>
           </section>
 
@@ -121,7 +162,12 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
                 <FileText class="modal-icon size-3.5" />
                 Olay
               </div>
-              <p class="modal-section-text mt-2 whitespace-pre-line text-sm leading-relaxed" v-html="factsHtml"></p>
+              <ExpandableText
+                :text="factsText"
+                :formatter="highlightLegalText"
+                :limit="300"
+                text-class="modal-section-text mt-2 whitespace-pre-line text-sm leading-relaxed"
+              />
             </section>
 
             <section class="modal-accent-emerald border-l pl-4">
@@ -129,7 +175,12 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
                 <Scale class="modal-icon size-3.5" />
                 Gerekçe
               </div>
-              <p class="modal-section-text mt-2 whitespace-pre-line text-sm leading-relaxed" v-html="reasoningHtml"></p>
+              <ExpandableText
+                :text="reasoningText"
+                :formatter="highlightLegalText"
+                :limit="300"
+                text-class="modal-section-text mt-2 whitespace-pre-line text-sm leading-relaxed"
+              />
             </section>
 
             <section class="modal-accent-violet border-l pl-4">
@@ -137,12 +188,38 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
                 <CheckCircle2 class="modal-icon size-3.5" />
                 Hüküm
               </div>
-              <p class="modal-section-text mt-2 whitespace-pre-line text-sm leading-relaxed" v-html="verdictHtml"></p>
+              <ExpandableText
+                :text="verdictText"
+                :formatter="highlightLegalText"
+                :limit="300"
+                text-class="modal-section-text mt-2 whitespace-pre-line text-sm leading-relaxed"
+              />
             </section>
           </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-3 border-t modal-border px-6 py-4">
+          <a
+            v-if="pdfHref"
+            :href="pdfHref"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-semibold shadow-sm transition hover:opacity-90"
+            :style="{ backgroundColor: 'var(--app-accent-strong)', color: 'var(--app-accent-strong-text)' }"
+          >
+            <ExternalLink class="size-4" />
+            Tüm Dava Metni
+          </a>
+          <span
+            v-else
+            class="inline-flex items-center gap-2 rounded-xl border app-border px-4 py-2.5 text-xs font-semibold app-text-muted"
+            title="Dosya adı tanımlı değil"
+          >
+            <ExternalLink class="size-4" />
+            Tüm Dava Metni
+          </span>
         </div>
       </div>
     </div>
   </Teleport>
 </template>
-
